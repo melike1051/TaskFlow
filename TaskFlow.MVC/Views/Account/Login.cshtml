@@ -1,0 +1,19 @@
+@model TaskFlow.MVC.Models.Auth.LoginViewModel
+
+<h2>Login</h2>
+
+<form asp-action="Login" method="post">
+    <div>
+        <label>Username</label>
+        <input asp-for="Username" />
+    </div>
+
+    <div>
+        <label>Password</label>
+        <input asp-for="Password" type="password" />
+    </div>
+
+    <button type="submit">Login</button>
+</form>
+
+<div asp-validation-summary="All"></div>

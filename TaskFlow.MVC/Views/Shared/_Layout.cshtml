@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TaskFlow</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <!-- 🔝 NAVBAR -->
+    @await Html.PartialAsync("_NavBar")
+
+    <!-- 📦 MAIN CONTENT -->
+    <main class="container my-5 flex-fill">
+        @RenderBody()
+    </main>
+
+    <!-- 🔻 FOOTER -->
+    <footer class="bg-dark text-light text-center py-3 mt-auto">
+        <small>© 2025 - TaskFlow</small>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

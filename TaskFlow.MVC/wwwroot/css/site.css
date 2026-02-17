@@ -1,0 +1,117 @@
+/* ====== GENEL ====== */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    padding: 20px;
+}
+
+/* ====== NAVBAR ====== */
+nav {
+    background-color: #2f3640;
+    padding: 12px 20px;
+}
+
+nav a {
+    color: #f5f6fa;
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* ====== HEADINGS ====== */
+h2 {
+    margin-top: 0;
+    color: #2f3640;
+}
+
+/* ====== TABLE ====== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: white;
+}
+
+table th {
+    background-color: #40739e;
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+table tr:hover {
+    background-color: #f1f2f6;
+}
+
+/* ====== BUTTONS ====== */
+button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button[type="submit"] {
+    background-color: #e84118;
+    color: white;
+}
+
+button[type="submit"]:hover {
+    background-color: #c23616;
+}
+
+/* Link style buttons */
+a {
+    color: #40739e;
+}
+
+a:hover {
+    color: #273c75;
+}
+
+/* ====== FORMS ====== */
+form div {
+    margin-bottom: 10px;
+}
+
+input, select {
+    padding: 6px;
+    width: 250px;
+}
+
+/* ====== STATUS BADGE (opsiyonel ama güzel) ====== */
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.status.todo {
+    background-color: #dcdde1;
+    color: #2f3640;
+}
+
+.status.inprogress {
+    background-color: #fbc531;
+    color: #2f3640;
+}
+
+.status.done {
+    background-color: #44bd32;
+    color: white;
+}

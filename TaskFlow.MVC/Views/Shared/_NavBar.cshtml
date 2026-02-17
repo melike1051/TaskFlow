@@ -1,0 +1,31 @@
+@{
+    var token = Context.Session.GetString("JWT");
+    var role = Context.Session.GetString("Role");
+}
+
+<nav style="padding:10px; border-bottom:1px solid #ccc;">
+    <a asp-controller="Home" asp-action="Index">TaskFlow</a>
+
+    @if (token == null)
+    {
+        <!-- 🔓 Giriş yapılmamış -->
+        <a asp-controller="Account" asp-action="Login">Login</a>
+        <a asp-controller="Account" asp-action="Register">Register</a>
+    }
+    else
+    {
+        <!-- 👤 Giriş yapılmış -->
+        <a asp-controller="Task" asp-action="MyTasks">My Tasks</a>
+        <a asp-controller="Task" asp-action="Create">Create Task</a>
+
+        @if (role == "Admin")
+        {
+            <!-- 🛡 Admin özel -->
+            <a asp-controller="Admin" asp-action="AllTasks">All Tasks</a>
+        }
+
+        <a asp-controller="Account" asp-action="Logout">Logout</a>
+    }
+</nav>
+
+<hr />
