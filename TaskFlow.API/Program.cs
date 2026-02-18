@@ -68,6 +68,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TaskFlowDbContext>();
 
+    // 🔥 Database ve tabloları oluştur
+    db.Database.Migrate();
+
+    // Seed admin user
     if (!db.Users.Any())
     {
         db.Users.Add(new User
