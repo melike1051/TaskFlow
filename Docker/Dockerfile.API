@@ -1,0 +1,36 @@
+# ===============================
+# BUILD STAGE
+# ===============================
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Solution dosyasını kopyala
+COPY TaskFlow.sln .
+
+# Proje dosyalarını kopyala (restore için gerekli)
+COPY TaskFlow.API/TaskFlow.API.csproj TaskFlow.API/
+COPY TaskFlow.Core/TaskFlow.Core.csproj TaskFlow.Core/
+
+# Restore
+RUN dotnet restore TaskFlow.API/TaskFlow.API.csproj
+
+# Tüm dosyaları kopyala
+COPY . .
+
+# Publish
+WORKDIR /src/TaskFlow.API
+RUN dotnet publish -c Release -o /app/publish
+
+
+# ===============================
+# RUNTIME STAGE
+# ===============================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+ENTRYPOINT ["dotnet", "TaskFlow.API.dll"]
