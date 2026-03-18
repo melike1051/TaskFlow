@@ -20,7 +20,14 @@ builder.Services.AddHttpClient("TaskFlowAPI", client =>
     );
 });
 
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 builder.Services.AddHttpContextAccessor(); 
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<AuthService>();

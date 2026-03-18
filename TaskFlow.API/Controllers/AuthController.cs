@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaskFlow.API.Data;
+using TaskFlow.API.Services;
 using TaskFlow.Core.DTOs;
 using TaskFlow.Core.Entities;
 
@@ -16,29 +17,35 @@ namespace TaskFlow.API.Controllers
     {
         private readonly TaskFlowDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly UserPasswordService _passwordService;
 
-        public AuthController(TaskFlowDbContext context, IConfiguration configuration)
+        public AuthController(
+            TaskFlowDbContext context,
+            IConfiguration configuration,
+            UserPasswordService passwordService)
         {
             _context = context;
             _configuration = configuration;
+            _passwordService = passwordService;
         }
 
        
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
+            var username = request.Username.Trim();
             var userExists = await _context.Users
-                .AnyAsync(x => x.Username == request.Username);
+                .AnyAsync(x => x.Username == username);
 
             if (userExists)
                 return BadRequest("Username already exists");
 
             var user = new User
             {
-                Username = request.Username,
-                PasswordHash = request.Password, 
-                Role = request.Role
+                Username = username,
+                Role = "User"
             };
+            user.PasswordHash = _passwordService.HashPassword(user, request.Password);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -50,14 +57,22 @@ namespace TaskFlow.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
+            var username = request.Username.Trim();
             var user = await _context.Users
-                .FirstOrDefaultAsync(x => x.Username == request.Username);
+                .FirstOrDefaultAsync(x => x.Username == username);
 
             if (user == null)
-                return Unauthorized("User not found");
+                return Unauthorized("Invalid username or password");
 
-            if (user.PasswordHash != request.Password)
-                return Unauthorized("Invalid password");
+            var passwordMatched = _passwordService.VerifyPassword(user, request.Password, out var shouldUpgradeHash);
+            if (!passwordMatched)
+                return Unauthorized("Invalid username or password");
+
+            if (shouldUpgradeHash)
+            {
+                user.PasswordHash = _passwordService.HashPassword(user, request.Password);
+                await _context.SaveChangesAsync();
+            }
 
             var claims = new[]
             {
@@ -76,7 +91,7 @@ namespace TaskFlow.API.Controllers
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
             );
 

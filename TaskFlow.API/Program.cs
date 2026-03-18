@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.API.Data;
+using TaskFlow.API.Services;
 using TaskFlow.Core.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +25,8 @@ var useHttpsRedirection = builder.Configuration.GetValue("UseHttpsRedirection", 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<UserPasswordService>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -86,21 +90,39 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TaskFlowDbContext>();
+    var passwordService = scope.ServiceProvider.GetRequiredService<UserPasswordService>();
+    var adminUsername = builder.Configuration["AdminUser:Username"] ?? "admin";
+    var adminPassword = builder.Configuration["AdminUser:Password"];
 
-    // 🔥 Database ve tabloları oluştur
-    db.Database.Migrate();
+    await db.Database.MigrateAsync();
 
-    // Seed admin user
-    if (!db.Users.Any())
+    var adminUser = await db.Users.FirstOrDefaultAsync(user => user.Role == "Admin");
+    if (adminUser is null)
     {
-        db.Users.Add(new User
+        if (string.IsNullOrWhiteSpace(adminPassword))
         {
-            Username = "admin",
-            PasswordHash = "1234",
-            Role = "Admin"
-        });
+            if (app.Environment.IsDevelopment())
+            {
+                adminPassword = "1234";
+            }
+            else
+            {
+                app.Logger.LogWarning("No admin user found. Set AdminUser__Password to bootstrap an admin account.");
+            }
+        }
 
-        db.SaveChanges();
+        if (!string.IsNullOrWhiteSpace(adminPassword))
+        {
+            adminUser = new User
+            {
+                Username = adminUsername,
+                Role = "Admin"
+            };
+            adminUser.PasswordHash = passwordService.HashPassword(adminUser, adminPassword);
+
+            db.Users.Add(adminUser);
+            await db.SaveChangesAsync();
+        }
     }
 }
 
