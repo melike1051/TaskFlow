@@ -1,0 +1,11 @@
+.git
+.github
+.vscode
+**/bin
+**/obj
+**/.DS_Store
+**/*.user
+**/*.suo
+**/appsettings.Development.json
+TaskFlow.API/taskflow.db
+helm/taskflow/charts
