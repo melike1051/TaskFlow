@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+env:
+  DOTNET_VERSION: 8.0.x
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore TaskFlow.sln
+
+      - name: Build
+        run: dotnet build TaskFlow.sln --configuration Release --no-restore
+
+      - name: Publish API
+        run: dotnet publish TaskFlow.API/TaskFlow.API.csproj --configuration Release --no-build --output artifacts/api
+
+      - name: Publish MVC
+        run: dotnet publish TaskFlow.MVC/TaskFlow.MVC.csproj --configuration Release --no-build --output artifacts/mvc
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint Helm chart
+        run: helm lint helm/taskflow
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Validate Kubernetes manifests
+        run: kubectl kustomize k8s/base >/dev/null

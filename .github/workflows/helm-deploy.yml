@@ -1,0 +1,57 @@
+name: helm-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment name
+        required: true
+        default: production
+      namespace:
+        description: Kubernetes namespace
+        required: true
+        default: taskflow
+      image_tag:
+        description: Container image tag to deploy
+        required: true
+        default: latest
+
+env:
+  RELEASE_NAME: taskflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "${HOME}/.kube"
+          echo "${KUBE_CONFIG_DATA}" | base64 --decode > "${HOME}/.kube/config"
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+
+      - name: Deploy with Helm
+        run: >
+          helm upgrade --install "${RELEASE_NAME}" helm/taskflow
+          --namespace "${{ inputs.namespace }}"
+          --create-namespace
+          --set api.image.repository=ghcr.io/${{ github.repository_owner }}/taskflow-api
+          --set api.image.tag=${{ inputs.image_tag }}
+          --set mvc.image.repository=ghcr.io/${{ github.repository_owner }}/taskflow-mvc
+          --set mvc.image.tag=${{ inputs.image_tag }}
+          --set secret.jwtKey="${{ secrets.JWT_KEY }}"
+          --set ingress.hosts[0].host="${{ vars.INGRESS_HOST }}"
