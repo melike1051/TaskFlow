@@ -1,0 +1,10 @@
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.example.yaml
+  - pvc.yaml
+  - api-deployment.yaml
+  - api-service.yaml
+  - mvc-deployment.yaml
+  - mvc-service.yaml
+  - ingress.yaml

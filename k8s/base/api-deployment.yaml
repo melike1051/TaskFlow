@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskflow-api
+  namespace: taskflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: taskflow-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: taskflow-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/owner/taskflow-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: UseHttpsRedirection
+              value: "false"
+            - name: ConnectionStrings__DefaultConnection
+              value: Data Source=/data/taskflow.db
+            - name: Jwt__Issuer
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: jwt-issuer
+            - name: Jwt__Audience
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: jwt-audience
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: taskflow-secrets
+                  key: jwt-key
+          volumeMounts:
+            - name: api-data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: api-data
+          persistentVolumeClaim:
+            claimName: taskflow-api-data
