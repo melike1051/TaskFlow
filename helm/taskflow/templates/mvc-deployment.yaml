@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskflow.fullname" . }}-mvc
+  labels:
+    {{- include "taskflow.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.mvc.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "taskflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mvc
+  template:
+    metadata:
+      labels:
+        {{- include "taskflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mvc
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mvc
+          image: "{{ .Values.mvc.image.repository }}:{{ .Values.mvc.image.tag }}"
+          imagePullPolicy: {{ .Values.mvc.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8081
+            - name: ApiBaseUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "taskflow.fullname" . }}-config
+                  key: api-base-url
+            - name: UseHttpsRedirection
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.mvc.resources | nindent 12 }}

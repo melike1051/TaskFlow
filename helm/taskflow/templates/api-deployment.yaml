@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskflow.fullname" . }}-api
+  labels:
+    {{- include "taskflow.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "taskflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "taskflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: UseHttpsRedirection
+              value: "false"
+            - name: ConnectionStrings__DefaultConnection
+              value: Data Source=/data/taskflow.db
+            - name: Jwt__Issuer
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "taskflow.fullname" . }}-config
+                  key: jwt-issuer
+            - name: Jwt__Audience
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "taskflow.fullname" . }}-config
+                  key: jwt-audience
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "taskflow.fullname" . }}-secrets
+                  key: jwt-key
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: api-data
+              mountPath: /data
+          {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: api-data
+          persistentVolumeClaim:
+            claimName: {{ include "taskflow.fullname" . }}-api-data
+      {{- end }}

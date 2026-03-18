@@ -1,0 +1,7 @@
+1. Open your TaskFlow deployment:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+
+2. The API service is available internally at:
+  http://{{ include "taskflow.fullname" . }}-api:{{ .Values.api.service.port }}

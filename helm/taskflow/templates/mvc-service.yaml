@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "taskflow.fullname" . }}-mvc
+  labels:
+    {{- include "taskflow.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "taskflow.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: mvc
+  ports:
+    - name: http
+      port: {{ .Values.mvc.service.port }}
+      targetPort: http

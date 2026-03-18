@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "taskflow.fullname" . }}-config
+  labels:
+    {{- include "taskflow.labels" . | nindent 4 }}
+data:
+  api-base-url: {{ tpl .Values.config.apiBaseUrl . | quote }}
+  jwt-issuer: {{ .Values.config.jwtIssuer | quote }}
+  jwt-audience: {{ .Values.config.jwtAudience | quote }}
