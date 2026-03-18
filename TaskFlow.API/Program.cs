@@ -1,15 +1,34 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.API.Data;
 using TaskFlow.Core.Entities;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var isRunningInContainer = string.Equals(
+    Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"),
+    "true",
+    StringComparison.OrdinalIgnoreCase);
+var defaultConnectionString = isRunningInContainer
+    ? "Data Source=/data/taskflow.db"
+    : "Data Source=taskflow.db";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration["Database:ConnectionString"]
+    ?? Environment.GetEnvironmentVariable("TASKFLOW_DB_CONNECTION")
+    ?? defaultConnectionString;
+var useHttpsRedirection = builder.Configuration.GetValue("UseHttpsRedirection", false);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -27,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddDbContext<TaskFlowDbContext>(options =>
-    options.UseSqlite("Data Source=taskflow.db"));
+    options.UseSqlite(connectionString));
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -92,11 +111,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseForwardedHeaders();
+
+if (useHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/healthz");
+app.MapGet("/readyz", async (TaskFlowDbContext dbContext, CancellationToken cancellationToken) =>
+{
+    var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+
+    return canConnect
+        ? Results.Ok(new { status = "ready" })
+        : Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Database is unavailable");
+});
 
 app.Run();

@@ -1,7 +1,17 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using TaskFlow.MVC.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+var useHttpsRedirection = builder.Configuration.GetValue("UseHttpsRedirection", false);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddHealthChecks();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddHttpClient("TaskFlowAPI", client =>
 {
@@ -26,7 +36,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+app.UseForwardedHeaders();
+
+if (useHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -37,5 +53,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHealthChecks("/healthz");
+app.MapGet("/readyz", () => Results.Ok(new { status = "ready" }));
 
 app.Run();
