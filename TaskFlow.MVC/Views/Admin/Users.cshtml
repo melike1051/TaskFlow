@@ -1,0 +1,112 @@
+@model TaskFlow.MVC.Models.Users.UserManagementPageViewModel
+@{
+    ViewData["Title"] = "Users";
+}
+
+<section class="page-stack">
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Admin console</span>
+            <h1>User Management</h1>
+            <p>Review roles, spot workload distribution, and keep access under control.</p>
+        </div>
+        <a asp-action="AllTasks" class="button-link">Back to Tasks</a>
+    </div>
+
+    <div class="stats-grid">
+        <article class="metric-card"><span>Total users</span><strong>@Model.TotalCount</strong></article>
+        <article class="metric-card"><span>Admins</span><strong>@Model.AdminCount</strong></article>
+        <article class="metric-card"><span>Members</span><strong>@Model.UserCount</strong></article>
+    </div>
+
+    <section class="panel-card">
+        <form method="get" class="filter-bar">
+            <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Search username" />
+            <select name="role" class="form-select">
+                @if (Model.Role == "All") { <option value="All" selected>All roles</option> } else { <option value="All">All roles</option> }
+                @if (Model.Role == "Admin") { <option value="Admin" selected>Admin</option> } else { <option value="Admin">Admin</option> }
+                @if (Model.Role == "User") { <option value="User" selected>User</option> } else { <option value="User">User</option> }
+            </select>
+            <select name="sortBy" class="form-select">
+                @if (Model.SortBy == "username") { <option value="username" selected>Sort by username</option> } else { <option value="username">Sort by username</option> }
+                @if (Model.SortBy == "role") { <option value="role" selected>Sort by role</option> } else { <option value="role">Sort by role</option> }
+                @if (Model.SortBy == "tasks") { <option value="tasks" selected>Sort by task count</option> } else { <option value="tasks">Sort by task count</option> }
+            </select>
+            <select name="sortDirection" class="form-select">
+                @if (Model.SortDirection == "asc") { <option value="asc" selected>Ascending</option> } else { <option value="asc">Ascending</option> }
+                @if (Model.SortDirection == "desc") { <option value="desc" selected>Descending</option> } else { <option value="desc">Descending</option> }
+            </select>
+            <button type="submit" class="button-link button-link--primary button-submit">Apply</button>
+        </form>
+
+        @if (!Model.Items.Any())
+        {
+            <div class="empty-state">
+                <h2>No users match this filter</h2>
+                <p>Try resetting the search criteria or adjusting the role filter.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Tasks</th>
+                            <th>Role Update</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var user in Model.Items)
+                    {
+                        <tr>
+                            <td><strong>@user.Username</strong></td>
+                            <td><span class="status @(user.Role == "Admin" ? "done" : "todo")">@user.Role</span></td>
+                            <td>@user.TaskCount</td>
+                            <td>
+                                <form asp-action="UpdateUserRole" method="post" class="inline-actions">
+                                    <input type="hidden" name="Id" value="@user.Id" />
+                                    <select name="Role" class="form-select form-select--inline">
+                                        @if (user.Role == "User") { <option value="User" selected>User</option> } else { <option value="User">User</option> }
+                                        @if (user.Role == "Admin") { <option value="Admin" selected>Admin</option> } else { <option value="Admin">Admin</option> }
+                                    </select>
+                                    <button type="submit" class="button-link button-link--primary button-submit">Save</button>
+                                </form>
+                            </td>
+                            <td>
+                                @if (user.CanDelete)
+                                {
+                                    <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" onsubmit="return confirm('Delete this user and all related tasks?');">
+                                        <button type="submit" class="button-link button-link--danger button-submit">Delete</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="muted-copy">Current session</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <div class="pagination-bar">
+        <span>Page @Model.Page of @Model.TotalPages</span>
+        <div class="inline-actions">
+            @if (Model.HasPreviousPage)
+            {
+                <a asp-action="Users" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-sortBy="@Model.SortBy" asp-route-sortDirection="@Model.SortDirection">Previous</a>
+            }
+            @if (Model.HasNextPage)
+            {
+                <a asp-action="Users" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-sortBy="@Model.SortBy" asp-route-sortDirection="@Model.SortDirection">Next</a>
+            }
+        </div>
+    </div>
+</section>

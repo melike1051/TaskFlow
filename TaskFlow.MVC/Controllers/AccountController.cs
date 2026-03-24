@@ -35,8 +35,9 @@ namespace TaskFlow.MVC.Controllers
 
             HttpContext.Session.SetString("JWT", result.Token);
             HttpContext.Session.SetString("Role", result.Role);
+            HttpContext.Session.SetString("Username", model.Username);
+            TempData["SuccessMessage"] = $"Welcome back, {model.Username}.";
 
-            
             if (result.Role == "Admin")
                 return RedirectToAction("AllTasks", "Admin");
 
@@ -60,10 +61,11 @@ namespace TaskFlow.MVC.Controllers
 
             if (!success)
             {
-                ModelState.AddModelError("", "Registration failed");
+                ModelState.AddModelError("", "We couldn't create your account. Please try a different username.");
                 return View(model);
             }
 
+            TempData["SuccessMessage"] = "Your account is ready. You can sign in now.";
             return RedirectToAction("Login");
         }
 
@@ -71,6 +73,7 @@ namespace TaskFlow.MVC.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
+            TempData["SuccessMessage"] = "You have been logged out safely.";
             return RedirectToAction("Login");
         }
     }

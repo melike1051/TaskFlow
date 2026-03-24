@@ -1,19 +1,37 @@
 @model TaskFlow.MVC.Models.Auth.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
 
-<h2>Login</h2>
+<section class="auth-shell">
+    <div class="panel-card auth-card">
+        <div class="section-heading">
+            <span class="eyebrow">Welcome back</span>
+            <h1>Sign in to your workspace</h1>
+            <p>Pick up where you left off, review priorities, and stay on top of deadlines.</p>
+        </div>
 
-<form asp-action="Login" method="post">
-    <div>
-        <label>Username</label>
-        <input asp-for="Username" />
+        <form asp-action="Login" method="post" class="stack-form">
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+            <div class="form-row">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <div class="form-row">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="button-link button-link--primary button-submit">Login</button>
+        </form>
+
+        <p class="form-footnote">
+            Need an account?
+            <a asp-controller="Account" asp-action="Register">Create one here</a>.
+        </p>
     </div>
-
-    <div>
-        <label>Password</label>
-        <input asp-for="Password" type="password" />
-    </div>
-
-    <button type="submit">Login</button>
-</form>
-
-<div asp-validation-summary="All"></div>
+</section>

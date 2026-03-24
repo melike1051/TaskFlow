@@ -1,11 +1,41 @@
-<div class="text-center">
-    <h1 class="fw-bold mb-3">Welcome to TaskFlow</h1>
-    <p class="text-muted mb-4">
-        Simple and secure task management application.
-    </p>
+@{
+    var isAuthenticated = Context.Session.GetString("JWT") != null;
+}
 
-    <a asp-controller="Task" asp-action="MyTasks"
-       class="btn btn-primary btn-lg">
-        Go to My Tasks
-    </a>
+<section class="hero-panel">
+    <div class="hero-copy">
+        <span class="eyebrow">Task orchestration without noise</span>
+        <h1>Clean dashboards, faster actions, and a calmer way to manage work.</h1>
+        <p>
+            TaskFlow gives users a focused workbench for personal tasks and equips admins with a live operational view
+            across the whole system.
+        </p>
+        <div class="hero-actions">
+            <a asp-controller="Task" asp-action="MyTasks" class="button-link button-link--primary">
+                @(isAuthenticated ? "Open My Workspace" : "Explore TaskFlow")
+            </a>
+            <a asp-controller="Account" asp-action="Register" class="button-link">Create Account</a>
+        </div>
+    </div>
+    <div class="hero-card">
+        <div class="metric-card">
+            <span>Daily focus</span>
+            <strong>Tasks, priorities, and deadlines in one view</strong>
+        </div>
+        <div class="metric-grid">
+            <article>
+                <span>Personal flow</span>
+                <strong>Create, edit, filter</strong>
+            </article>
+            <article>
+                <span>Admin insight</span>
+                <strong>User and task management</strong>
+            </article>
+            <article>
+                <span>Safer auth</span>
+                <strong>Hashed passwords and role controls</strong>
+            </article>
+        </div>
+    </div>
+</section>
 </div>

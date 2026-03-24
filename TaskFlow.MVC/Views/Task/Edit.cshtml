@@ -1,35 +1,50 @@
 @model TaskFlow.MVC.Models.Tasks.TaskEditViewModel
+@{
+    ViewData["Title"] = "Edit Task";
+}
 
-<h2>Edit Task</h2>
-
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
-
-    <div>
-        <label>Title</label>
-        <input asp-for="Title" />
+<section class="panel-card form-panel">
+    <div class="section-heading">
+        <span class="eyebrow">Task maintenance</span>
+        <h1>Update task details</h1>
+        <p>Keep progress accurate so your board stays reliable and useful.</p>
     </div>
 
-    <div>
-        <label>Description</label>
-        <input asp-for="Description" />
-    </div>
+    <form asp-action="Edit" method="post" class="stack-form">
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
 
-    <div>
-        <label>Due Date</label>
-        <input asp-for="DueDate" type="date" />
-    </div>
+        <div class="form-row">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger small"></span>
+        </div>
 
-    <div>
-        <label>Status</label>
-        <select asp-for="Status">
-            <option value="0">Todo</option>
-            <option value="1">In Progress</option>
-            <option value="2">Done</option>
-        </select>
-    </div>
+        <div class="form-row">
+            <label asp-for="Description"></label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+        </div>
 
-    <button type="submit">Update</button>
-</form>
+        <div class="form-grid">
+            <div class="form-row">
+                <label asp-for="DueDate"></label>
+                <input asp-for="DueDate" type="date" class="form-control" />
+                <span asp-validation-for="DueDate" class="text-danger small"></span>
+            </div>
 
-<div asp-validation-summary="All"></div>
+            <div class="form-row">
+                <label asp-for="Status"></label>
+                <select asp-for="Status" class="form-select">
+                    <option value="0">Todo</option>
+                    <option value="1">In Progress</option>
+                    <option value="2">Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <a asp-action="MyTasks" class="button-link">Back</a>
+            <button type="submit" class="button-link button-link--primary button-submit">Save Changes</button>
+        </div>
+    </form>
+</section>

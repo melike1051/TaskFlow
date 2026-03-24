@@ -32,6 +32,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<UserService>();
 
 
 

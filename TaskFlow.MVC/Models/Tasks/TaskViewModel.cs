@@ -11,7 +11,6 @@ namespace TaskFlow.MVC.Models.Tasks
         // 👤 ADMIN İÇİN: GÖREVİN SAHİBİ
         public string Username { get; set; } = "";
 
-        // 👇 SADECE GÖRSEL AMAÇLI
         public string StatusText
         {
             get
@@ -23,6 +22,33 @@ namespace TaskFlow.MVC.Models.Tasks
                     2 => "Done",
                     _ => "Unknown"
                 };
+            }
+        }
+
+        public string StatusClass => Status switch
+        {
+            0 => "todo",
+            1 => "inprogress",
+            2 => "done",
+            _ => "todo"
+        };
+
+        public string DueStateText
+        {
+            get
+            {
+                if (Status == 2)
+                    return "Completed";
+
+                var today = DateTime.Today;
+                if (DueDate.Date < today)
+                    return "Overdue";
+                if (DueDate.Date == today)
+                    return "Due today";
+                if (DueDate.Date <= today.AddDays(3))
+                    return "Due soon";
+
+                return "Planned";
             }
         }
     }

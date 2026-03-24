@@ -26,6 +26,28 @@ namespace TaskFlow.MVC.Services
                 ?? new List<TaskViewModel>();
         }
 
+        public async Task<TaskEditViewModel?> GetTaskForEditAsync(int id)
+        {
+            var client = _apiClient.CreateClient();
+            var response = await client.GetAsync($"/api/tasks/{id}");
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var task = await response.Content.ReadFromJsonAsync<TaskViewModel>();
+            if (task == null)
+                return null;
+
+            return new TaskEditViewModel
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                DueDate = task.DueDate,
+                Status = task.Status
+            };
+        }
+
         
         public async Task<bool> CreateTaskAsync(TaskCreateViewModel model)
         {

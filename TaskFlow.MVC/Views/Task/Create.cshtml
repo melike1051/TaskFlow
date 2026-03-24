@@ -1,33 +1,49 @@
 @model TaskFlow.MVC.Models.Tasks.TaskCreateViewModel
+@{
+    ViewData["Title"] = "Create Task";
+}
 
-<h2>Create Task</h2>
-
-<form asp-action="Create" method="post">
-    <div>
-        <label>Title</label>
-        <input asp-for="Title" />
+<section class="panel-card form-panel">
+    <div class="section-heading">
+        <span class="eyebrow">Task setup</span>
+        <h1>Create a new task</h1>
+        <p>Capture the work clearly so it is easy to track, prioritize, and complete.</p>
     </div>
 
-    <div>
-        <label>Description</label>
-        <input asp-for="Description" />
-    </div>
+    <form asp-action="Create" method="post" class="stack-form">
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
 
-    <div>
-        <label>Due Date</label>
-        <input asp-for="DueDate" type="date" />
-    </div>
+        <div class="form-row">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" class="form-control" placeholder="Ex: Prepare sprint review deck" />
+            <span asp-validation-for="Title" class="text-danger small"></span>
+        </div>
 
-    <div>
-        <label>Status</label>
-        <select asp-for="Status">
-            <option value="0">Todo</option>
-            <option value="1">In Progress</option>
-            <option value="2">Done</option>
-        </select>
-    </div>
+        <div class="form-row">
+            <label asp-for="Description"></label>
+            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe the expected outcome"></textarea>
+        </div>
 
-    <button type="submit">Create</button>
-</form>
+        <div class="form-grid">
+            <div class="form-row">
+                <label asp-for="DueDate"></label>
+                <input asp-for="DueDate" type="date" class="form-control" />
+                <span asp-validation-for="DueDate" class="text-danger small"></span>
+            </div>
 
-<div asp-validation-summary="All"></div>
+            <div class="form-row">
+                <label asp-for="Status"></label>
+                <select asp-for="Status" class="form-select">
+                    <option value="0">Todo</option>
+                    <option value="1">In Progress</option>
+                    <option value="2">Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <a asp-action="MyTasks" class="button-link">Cancel</a>
+            <button type="submit" class="button-link button-link--primary button-submit">Create Task</button>
+        </div>
+    </form>
+</section>

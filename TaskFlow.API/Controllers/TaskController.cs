@@ -43,6 +43,25 @@ namespace TaskFlow.API.Controllers
             return Ok(tasks);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetTask(int id)
+        {
+            var userId = GetUserId();
+            var role = GetUserRole();
+
+            var task = await _context.Tasks
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task == null)
+                return NotFound("Task not found");
+
+            if (role != "Admin" && task.UserId != userId)
+                return NotFound("Task not found or not authorized");
+
+            return Ok(task);
+        }
+
        
         [Authorize(Roles = "Admin")]
         [HttpGet]

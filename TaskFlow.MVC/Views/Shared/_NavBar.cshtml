@@ -3,29 +3,30 @@
     var role = Context.Session.GetString("Role");
 }
 
-<nav style="padding:10px; border-bottom:1px solid #ccc;">
-    <a asp-controller="Home" asp-action="Index">TaskFlow</a>
+<nav class="topbar">
+    <div class="topbar__brand">
+        <a asp-controller="Home" asp-action="Index" class="brand-mark">TaskFlow</a>
+        <span class="brand-copy">Focused task execution for calm teams.</span>
+    </div>
 
+    <div class="topbar__links">
     @if (token == null)
     {
-        <!-- 🔓 Giriş yapılmamış -->
         <a asp-controller="Account" asp-action="Login">Login</a>
-        <a asp-controller="Account" asp-action="Register">Register</a>
+        <a asp-controller="Account" asp-action="Register" class="button-link button-link--primary">Register</a>
     }
     else
     {
-        <!-- 👤 Giriş yapılmış -->
         <a asp-controller="Task" asp-action="MyTasks">My Tasks</a>
         <a asp-controller="Task" asp-action="Create">Create Task</a>
 
         @if (role == "Admin")
         {
-            <!-- 🛡 Admin özel -->
             <a asp-controller="Admin" asp-action="AllTasks">All Tasks</a>
+            <a asp-controller="Admin" asp-action="Users">Users</a>
         }
 
-        <a asp-controller="Account" asp-action="Logout">Logout</a>
+        <a asp-controller="Account" asp-action="Logout" class="button-link">Logout</a>
     }
+    </div>
 </nav>
-
-<hr />

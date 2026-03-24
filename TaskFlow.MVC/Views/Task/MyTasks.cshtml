@@ -1,57 +1,103 @@
-@model List<TaskFlow.MVC.Models.Tasks.TaskViewModel>
-
-<h2>My Tasks</h2>
-
-<a asp-action="Create">➕ Create New Task</a>
-
-@if (!Model.Any())
-{
-    <p>No tasks found.</p>
+@model TaskFlow.MVC.Models.Tasks.TaskListPageViewModel
+@{
+    ViewData["Title"] = Model.Title;
 }
-else
-{
-    <table border="1" cellpadding="5">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var task in Model)
+
+<section class="page-stack">
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Personal workspace</span>
+            <h1>@Model.Title</h1>
+            <p>@Model.Subtitle</p>
+        </div>
+        <a asp-action="Create" class="button-link button-link--primary">Create New Task</a>
+    </div>
+
+    <div class="stats-grid">
+        <article class="metric-card"><span>Total</span><strong>@Model.TotalCount</strong></article>
+        <article class="metric-card"><span>Todo</span><strong>@Model.TodoCount</strong></article>
+        <article class="metric-card"><span>In Progress</span><strong>@Model.InProgressCount</strong></article>
+        <article class="metric-card"><span>Done</span><strong>@Model.DoneCount</strong></article>
+    </div>
+
+    <section class="panel-card">
+        <form method="get" class="filter-bar">
+            <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Search title or description" />
+            <select name="status" class="form-select">
+                <option value="">All statuses</option>
+                @if (Model.Status == 0) { <option value="0" selected>Todo</option> } else { <option value="0">Todo</option> }
+                @if (Model.Status == 1) { <option value="1" selected>In Progress</option> } else { <option value="1">In Progress</option> }
+                @if (Model.Status == 2) { <option value="2" selected>Done</option> } else { <option value="2">Done</option> }
+            </select>
+            <select name="sortBy" class="form-select">
+                @if (Model.SortBy == "dueDate") { <option value="dueDate" selected>Sort by due date</option> } else { <option value="dueDate">Sort by due date</option> }
+                @if (Model.SortBy == "title") { <option value="title" selected>Sort by title</option> } else { <option value="title">Sort by title</option> }
+                @if (Model.SortBy == "status") { <option value="status" selected>Sort by status</option> } else { <option value="status">Sort by status</option> }
+            </select>
+            <select name="sortDirection" class="form-select">
+                @if (Model.SortDirection == "asc") { <option value="asc" selected>Ascending</option> } else { <option value="asc">Ascending</option> }
+                @if (Model.SortDirection == "desc") { <option value="desc" selected>Descending</option> } else { <option value="desc">Descending</option> }
+            </select>
+            <button type="submit" class="button-link button-link--primary button-submit">Apply</button>
+        </form>
+
+        @if (!Model.Items.Any())
         {
-            <tr>
-                <td>@task.Title</td>
-                <td>@task.Description</td>
-                <td>@task.DueDate.ToShortDateString()</td>
-                <td>@task.StatusText</td>
-                <td>
-                    <!-- ✏️ EDIT -->
-                    <a asp-action="Edit"
-                       asp-route-id="@task.Id"
-                       asp-route-title="@task.Title"
-                       asp-route-description="@task.Description"
-                       asp-route-dueDate="@task.DueDate"
-                       asp-route-status="@task.Status">
-                        Edit
-                    </a>
-
-                    |
-
-                    <!-- 🗑 DELETE -->
-                    <form asp-action="Delete"
-                          asp-route-id="@task.Id"
-                          method="post"
-                          style="display:inline"
-                          onsubmit="return confirm('Are you sure you want to delete this task?');">
-                        <button type="submit">Delete</button>
-                    </form>
-                </td>
-            </tr>
+            <div class="empty-state">
+                <h2>@Model.EmptyTitle</h2>
+                <p>@Model.EmptyDescription</p>
+            </div>
         }
-        </tbody>
-    </table>
-}
+        else
+        {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Timing</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var task in Model.Items)
+                    {
+                        <tr>
+                            <td><strong>@task.Title</strong></td>
+                            <td>@task.Description</td>
+                            <td>@task.DueDate.ToString("dd MMM yyyy")</td>
+                            <td><span class="status @task.StatusClass">@task.StatusText</span></td>
+                            <td>@task.DueStateText</td>
+                            <td>
+                                <div class="inline-actions">
+                                    <a asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                                    <form asp-action="Delete" asp-route-id="@task.Id" method="post" onsubmit="return confirm('Delete this task?');">
+                                        <button type="submit" class="button-link button-link--danger button-submit">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <div class="pagination-bar">
+        <span>Page @Model.Page of @Model.TotalPages</span>
+        <div class="inline-actions">
+            @if (Model.HasPreviousPage)
+            {
+                <a asp-action="MyTasks" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-sortBy="@Model.SortBy" asp-route-sortDirection="@Model.SortDirection">Previous</a>
+            }
+            @if (Model.HasNextPage)
+            {
+                <a asp-action="MyTasks" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-sortBy="@Model.SortBy" asp-route-sortDirection="@Model.SortDirection">Next</a>
+            }
+        </div>
+    </div>
+</section>
